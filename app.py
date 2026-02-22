@@ -20,10 +20,10 @@ NEZHA_SERVER = os.environ.get('NEZHA_SERVER', '')    # 哪吒v0填写格式: nez
 NEZHA_PORT = os.environ.get('NEZHA_PORT', '')        # 哪吒v1请留空，哪吒v0 agent端口
 NEZHA_KEY = os.environ.get('NEZHA_KEY', '')          # 哪吒v0或v1密钥，哪吒面板后台命令里获取
 DOMAIN = os.environ.get('DOMAIN', 'your-domain.com') # 分配的域名或反代后的域名
-SUB_PATH = os.environ.get('SUB_PATH', 'sub')         # 节点订阅路径
+SUB_PATH = os.environ.get('SUB_PATH', 'sub')         # 节点订阅token
 NAME = os.environ.get('NAME', '')                    # 节点名称
 WSPATH = os.environ.get('WSPATH', UUID[:8])          # 节点路径
-PORT = int(os.environ.get('SERVER_PORT') or os.environ.get('PORT') or 3009)  # http和ws端口，默认自动优先获取容器分配的端口
+PORT = int(os.environ.get('SERVER_PORT') or os.environ.get('PORT') or 3000)  # http和ws端口，默认自动优先获取容器分配的端口
 AUTO_ACCESS = os.environ.get('AUTO_ACCESS', '').lower() == 'true'            # 自动访问保活,默认关闭,true开启,false关闭,需同时填写DOMAIN变量
 DEBUG = os.environ.get('DEBUG', '').lower() == 'true' # 调试使用，保持默认,true开启调试
 
@@ -262,7 +262,7 @@ class ProxyHandler:
             
             received_hash_bytes = first_msg[:56]
             
-            # 验证密码 - 使用字节比较
+            # 验证密码
             hash_obj = hashlib.sha224()
             hash_obj.update(self.uuid.encode())
             expected_hash_bytes = hash_obj.digest()  # 获取字节
@@ -405,7 +405,6 @@ class ProxyHandler:
                 await websocket.close()
                 return False
             
-            # 连接目标
             resolved_host = await resolve_host(host)
             
             try:
@@ -473,17 +472,14 @@ async def websocket_handler(request):
         
         msg_data = first_msg.data
         
-        # 尝试VLS
         if len(msg_data) > 17 and msg_data[0] == 0:
             if await proxy.handle_vless(ws, msg_data):
                 return ws
         
-        # 尝试Tro
         if len(msg_data) >= 58:
             if await proxy.handle_trojan(ws, msg_data):
                 return ws
         
-        # 尝试ss
         if len(msg_data) > 0 and msg_data[0] in (1, 3, 4):
             if await proxy.handle_shadowsocks(ws, msg_data):
                 return ws
