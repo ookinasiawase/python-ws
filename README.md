@@ -1,6 +1,6 @@
 <div align="center">
 
-# Node-ws
+# Python-ws
 基于python serverless实现的vless+trojan+shadowsocks三协议,轻量，无内核。
 
 ---
